@@ -7,7 +7,8 @@
 param(
     [string] $file="",
     [string] $format="png",
-    [string] $type ="uml"
+    [string] $type ="uml",
+    [string] $out="out/"
 )
 
 #
@@ -19,15 +20,18 @@ $jarpath = ($path.value) + ("\..\ext\")
 
 if (${file} -eq "") {
     $files = gci "*.txt"
-    foreach ($filename in $files) {
-#        Write-host ${filename}.basename
-        if (${type} -eq "uml") {
-            & java -jar ${jarpath}${plantuml} "-t${format}" -o "out/"+${filename}.basename+"."+${format} ${filename}
-        } elseif (${type} -eq "dot") {
-            Write-host "dot format not supported at this time"
-        } else {
-            Write-host "unknown format"
-        }        
-    }
+} else {
+  $files = $file
+}
+    
+foreach ($filename in $files) {
+    $outfile = ${filename}.basename+"."+${format}
+    if (${type} -eq "uml") {
+        & java -jar ${jarpath}${plantuml} "-t${format}" -o ${out}+${filename}.basename+"."+${format} ${filename}
+    } elseif (${type} -eq "dot") {
+        & dot -o ${out}+${outfile}  -T${format} ${filename}
+    } else {
+        Write-host "unknown format"
+    }        
 }
 break
