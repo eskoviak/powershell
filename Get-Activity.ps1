@@ -16,10 +16,15 @@ Import-Module ImportExcel
 if (-not (Test-Path $Datafile)) {
     Write-Error $("Datafile {0} not found" -f $Datafile )
 } else {
+    $Activity = "*"+$Activity+"*"
     $dataObj = Import-Excel -Path $Datafile -WorksheetName Calories
-    ForEach-Object -InputObject $dataObj -Process {
-        if ($_.Activity -like $Activity) {
-            Write-Output ("{0}`t{1}`t{2}`t{3}" -f $_.Activity, $_.125, $_.155, $_.185)
+<#     ForEach-Object -InputObject $dataObj -Process {
+        if ($row.Activity -like $Activity ) {
         }
-    }
+    } #>
+    foreach ($row in $dataObj) {
+        if ($row.Activity -like $Activity) {
+            Write-Output ("{0}`t{1}`t{2}`t{3}" -f $row.Activity, $row.125, $row.155, $row.185)
+        }
+     }
 }
