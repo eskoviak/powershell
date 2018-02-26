@@ -17,9 +17,11 @@ if (-not (Test-Path $Datafile)) {
     Write-Error $("Datafile {0} not found" -f $Datafile )
 } else {
     $dataObj = Import-Excel -Path $Datafile -WorksheetName Calories
-    ForEach-Object -InputObject $dataObj -Process {
-        if ($_.Activity -like $Activity) {
-            Write-Output ("{0}`t{1}`t{2}`t{3}" -f $_.Activity, $_.125, $_.155, $_.185)
+    $Activity = "*" + $Activity + "*"
+    foreach ($entry in $dataObj) {
+        if ($entry.Activity -like $Activity) {
+            Write-Output ("{0}`t{1}`t{2}`t{3}" -f $Entry.Activity, $Entry.125, $Entry.155, $Entry.185)
         }
     }
+
 }
