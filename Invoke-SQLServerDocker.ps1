@@ -1,8 +1,10 @@
 $saPassword = "Thagn0th%"
-$dbName = "HealthFacts"
-$dbLocalFiles = "C:\Users\eskov\AppData\Local\Microsoft\Microsoft SQL Server Local DB\Instances\MSSQLLocalDB\"
-$attachDB = @(@{'dbName'=$dbName}, @{'dbfiles'=@($(Join-Path -Path $dbLocalFiles -ChildPath (($dbName)+".mdf")),
-   $(Join-Path -Path $dbLocalFiles -ChildPath (($dbName)+".ldf")))})
+#$dbName = "mytest"
+#$dbLocalFiles = "c:/data"
+#$attachDB = @({"dbName":($dbName), @{'dbfiles'=@($(Join-Path -Path $dbLocalFiles -ChildPath (($dbName)+".mdf")),
+#   $(Join-Path -Path $dbLocalFiles -ChildPath (($dbName)+".ldf")))})
 
-#docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y -e attach_dbs=$attachDB microsoft/mssql-server-windows-developer
-docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y  microsoft/mssql-server-windows-developer
+$attachDB = "[{'dbName' : 'mytest', 'dbFiles' : ['c:\\data\\mytest.mdf', 'c:\\data\\mytest.ldf']}]"
+docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y --mount type=bind,source="D:/SQLDatabases",target="c:/data" -e attach_dbs=$attachDB microsoft/mssql-server-windows-developer
+#docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y  microsoft/mssql-server-windows-developer
+#docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y --mount type=bind,source="D:/SQLDatabases",target="c:/data" microsoft/mssql-server-windows-developer
