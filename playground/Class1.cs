@@ -21,5 +21,9 @@ namespace playground
             // empty constructor code here
             Title = "Some Title";
         }
+
+        public Class1(Int32 id){
+            Id = id;
+        }
     }
 }
