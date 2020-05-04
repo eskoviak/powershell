@@ -7,14 +7,8 @@ $saPassword = "Thagn0th%"
 #HP-840
 #$attachDB = "[{'dbName' : 'HealthFacts', 'dbFiles' : ['c:\\data\\HealthFacts.mdf', 'c:\\data\\HealthFacts.ldf']}]"
 #EdGamer
-<<<<<<< HEAD
-#$attachDB = "[{'dbName' : 'mytest', 'dbFiles' : ['c:\\data\\mytest.mdf', 'c:\\data\\mytest.ldf']}]"
+$attachDB = "[{'dbName' : 'mytest', 'dbFiles' : ['d:\\SQLDatabases\\mytest.mdf', 'd:\\SQLDatabases\\mytest.ldf']}]"
 #docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y --mount type=bind,source="D:/SQLDatabases",target="c:/data" -e attach_dbs=$attachDB microsoft/mssql-server-windows-developer
-#docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y  microsoft/mssql-server-windows-developer
-docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y --mount type=bind,source="C:/Users/edskov/SQLDatabases",target="c:/data" microsoft/mssql-server-windows-developer
-=======
+#EdGamerdb
 $attachDB = "[{'dbName' : 'mytest', 'dbFiles' : ['c:\\data\\mytest.mdf', 'c:\\data\\mytest.ldf']}]"
 docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y --mount type=bind,source="D:/SQLDatabases",target="c:/data" -e attach_dbs=$attachDB microsoft/mssql-server-windows-developer
-#docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y  microsoft/mssql-server-windows-developer
-#docker run -d -p 1433:1433 -e sa_password=$saPassword -e ACCEPT_EULA=Y --mount type=bind,source="D:/SQLDatabases",target="c:/data" microsoft/mssql-server-windows-developer
->>>>>>> 13b1b7b42c60ff074a75c462d1a1dba80f15e1e0

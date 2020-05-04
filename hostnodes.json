@@ -1,0 +1,330 @@
+﻿[
+    {
+        "Name":  "M3MECPRD1",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "FGRECV1-M91",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SQL12A",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "ERPAPP",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "INTPRD",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCLAIMS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLSPRD3",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLSPRD2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "DAYCORECV",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "FINPRD2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLRECEIVING4",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RTLPRD3",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLRECEIVING2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RTLPRD2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLSPRD",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2TOOLCRIB",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "M3MECTST1",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "JERKOHN",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "DSTPRD2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "ERP-FOM",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "LGTYPRDAPP",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "LGTYPRDAPP2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2GUSLBL6N8",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "DSTPRD3",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "ERPFOMDTS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RWSGNETDEV",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RWSSSIS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKI",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "ERP-APP1",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "MANPRD2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2GUSLBLPECOS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SQLDEV",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RWSSQL2000TST",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9GUSLBL6N8",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9GUSLBLG3A",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCSUPER",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "VM_APP_SCHED",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "APIWEB2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKJ",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SHKWEB01A",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9GUSLBLPECOS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SHKWEB01B",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9GUSLBLWELT",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "M3COMACTPRD",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "M3COMACTTST",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "NULL",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKC",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RMSECRECV",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKL",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKB",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2GUSLBLOLU",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKG",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKH",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9GUSLBLOLU",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "LBIAPPPRD",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2GUSLBLMAN",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9BOXLBLG3B",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2GUSLBLG2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT9BOXLBLG3A-M",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2BOXLBLNS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "POTRAWMAT",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "WIN7TST-M91",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "FGREPACK-M58",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "POTRAWMAT2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKF",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SBF_DAVDODG",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKE",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "AMYTHOM",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLSDEV2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "PLT2BOXLBLG1",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SHOERETURN2-M93",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SPSAPP1",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKD",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECK",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "DWSSRS",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLCHECKK",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SLSTST2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RWSINTRFC",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RWSINTPT2",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RWSINTSLC",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "SQLTRACETST",
+        "Type":  "Host"
+    },
+    {
+        "Name":  "RAWMATRECV",
+        "Type":  "Host"
+    }
+]
