@@ -7,15 +7,24 @@
 
 .Example
 #>
+
+<## EdWorkstation
+$DatabaseName = "Activity"
 $TableName = "HarvardActivityReference"
+$ConnectionString = "Server=EDWORKSTATION\SQLDEV;database=$DatabaseName;Integrated Security=true"
+#>
+$DatabaseName = "PurchaseOrderContainer"
+$TableName = "PurchaseOrderContainer"
+$ConnectionString = "Server=SQL12DEV\SQL2;database=$DatabaseName;Integrated Security=true"
+
 $TableMap = @{}
-$SqlConnection = New-Object System.Data.SqlClient.SqlConnection -ArgumentList 'Server=EDWORKSTATION\SQLDEV;database=Activity;Integrated Security=true'
+$SqlConnection = New-Object System.Data.SqlClient.SqlConnection -ArgumentList $ConnectionString
 $SqlConnection.open()
 $SqlCmd = New-Object System.Data.SqlClient.SqlCommand -Property @{
     Connection = $SqlConnection;
     CommandText = @"
         SELECT c.name, c.is_identity, st.name,  c.max_length, c.precision, c.scale, c.is_nullable
-        FROM [Activity].[sys].[tables] t, [Activity].[sys].[columns] c, [Activity].[sys].[systypes] st
+        FROM [$DatabaseName].[sys].[tables] t, [$DatabaseName].[sys].[columns] c, [$DatabaseName].[sys].[systypes] st
         WHERE t.name = '$TableName'
           AND c.object_id = t.object_id
           AND st.xusertype = c.system_type_id
@@ -32,5 +41,6 @@ while($ColumnReader.Read()) {
                                 }
 }
 Write-Output $TableMap
-Write-Output $TableName["Id"]
+Write-Output $TableMap["ContainerNum"]
+Write-Output $TableMap["ContainerNum"]["Type"]
 $SqlConnection.close()
