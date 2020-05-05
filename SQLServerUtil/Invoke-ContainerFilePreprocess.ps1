@@ -1,24 +1,21 @@
-<#
-Reads the input file from Business area, adds/updates the data to the PO Container Database
+<##
+.synopsis
+  Reads the input file from Business area, adds/updates the data 
 
-Note:  The input file is a bit messy -- clean it up
-@author E Skoviak
+.description
+  The input file is a bit messy -- clean it up
+.example
 #>
 
 param (
     [CmdletBinding()]
-
-    # Input File Name
-    #[Parameter(Mandatory=$true)]
-    #[string]
-    #$Filename,
 
     # Debug
     [Parameter(Mandatory=$false)]
     [switch]
     $IsDebug
 
-    )
+)
 
 ##### GLOBALS #####
 <# The first row contains garbage headers that will cause the import to choke
@@ -36,12 +33,14 @@ $SourceFileRegex = '\d{4}.csv$'
 #$TableName = "PurchaseOrderContainer"
 #$ConnectionString = "Server=SQL12DEV\SQL2;database=$DatabaseName;Integrated Security=true"
 
-<# Read the raw file, Delete the header row and save to a 
-   temp file with the new header row
+<##
+  Read the raw file, Delete the header row and save to a 
+  temp file with the new header row
 #>
+#$ScriptPath = $MyInvocation.PSScriptRoot
 $Filelist = $null
 if ($IsDebug) {
-    $Filelist = Get-ChildItem -Path "C:/source/repos/powershell/sqlserverutil/data" -Filter *.csv
+    $Filelist = Get-ChildItem -Path (Join-Path -Path (Split-Path -Path $PSCommandPath) -Childpath data) -Filter *.csv
     #Write-Output($FileList)
 } else {
     $FileList = Get-ChildItem -Path $SourceFolder -Filter *.csv
