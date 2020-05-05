@@ -1,0 +1,22 @@
+digraph F {
+    // User Nodes
+    NODE [shape=oval];
+    M3MEC [label=M3MEC ];
+    "FGRECV1-M91" [label="FGECV1-M91"];
+    "SQL12A" [label="SQL12A"]
+    "DSTPRD2" [label="DSTPRD2"]
+
+    // Data Nodes
+    NODE [shape=square];
+    subgraph clusterERPAPP {
+        label=ERPAPP
+        EDI [label=EDI];
+        MoveX [label="MoveX"]
+    }
+
+    // Edges
+    M3MEC->EDI [label=".NET SQL Client"; fontsize=12; fontname="times"; taillabel="MECPRD"; labelfontcolor=red; labelfontsize=10]
+    "FGRECV1-M91"->EDI [label="DTS Designer"; fontsize=12; fontname="times"; taillabel="RWSC\\\\dstprd"; labelfontcolor=red; labelfontsize=10]
+    "SQL12A"->EDI [label="MoveXReportScheduler"; fontsize=12; fontname="times"; taillabel="RWSC\\\\sqlclusteprd"; labelfontcolor=red; labelfontsize=10]
+    "DSTPRD2"->"MoveX" [label="ApplicationUser"; fontsize=12; fontname="times"; taillabel="RWSC\\\\dstprd"; labelfontcolor=red; labelfontsize=10]
+}

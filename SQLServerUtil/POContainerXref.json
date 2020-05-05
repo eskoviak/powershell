@@ -1,0 +1,10 @@
+{
+  "PurchaseOrderNum" : "H",
+  "ItemNum" : "J",
+  "ContainerNum" : "L",
+  "MasterBOL" : "M",
+  "ItemQuantity" : "N",
+  "CaseCount" : "O",
+  "HouseBOL" : "T",
+  "DeliveryDate" : "V"
+}
