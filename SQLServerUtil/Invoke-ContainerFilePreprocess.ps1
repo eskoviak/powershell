@@ -10,12 +10,25 @@
 param (
     [CmdletBinding()]
 
+    # Environment 
+    [Parameter(Mandatory=$true)]
+    [string]
+    $Environment,
+
     # Debug
     [Parameter(Mandatory=$false)]
     [switch]
     $IsDebug
 
 )
+
+<##
+  Setup -- read config
+#>
+$AppSettings = Get-Content .\appsettings.json | ConvertFrom-Json
+$SourceFileRegex = $AppSettings.Common.SourceFileRegex
+Write-Output ($SourceFileRegex)
+exit
 
 ##### GLOBALS #####
 <# The first row contains garbage headers that will cause the import to choke
@@ -27,7 +40,7 @@ param (
 ##
 $Headers =  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'
 $SourceFolder = "\\websense\ftproot\UPS\Containers"
-$SourceFileRegex = '\d{4}.csv$'
+#$SourceFileRegex = '\d{4}.csv$'
 #$DebugFile = 'data\Red_Wing_Import_Status_Report_20200429094653.csv'
 #$DatabaseName = "PurchaseOrderContainer"
 #$TableName = "PurchaseOrderContainer"
@@ -47,7 +60,7 @@ if ($IsDebug) {
     #Write-Output (" : $FileList")
 }
 
-if ($Filelist -eq $null ) {
+if ($null -eq $Filelist ) {
     Write-Host ("No files to process -- Exiting...")
     Exit
 }
