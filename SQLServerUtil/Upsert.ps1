@@ -22,7 +22,7 @@ param (
 
 )
 
-function getColumnName {
+function Get-ColumnName {
   param (
     [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
     [String]
@@ -45,7 +45,10 @@ function getColumnName {
   Setup -- read config
 #>
 $AppSettings = Get-Content .\appsettings.json | ConvertFrom-Json
-$POContainerXref = Get-Content .\POContainerXref.json | ConvertFrom-Json
+$POContainerXref = Get-Content .\POContainerXref.json | ConvertFrom-Json -AsHashtable
+#Write-Output(Get-ColumnName -ColumnOrdinal M -ColumnHash $POContainerXref)
+#exit
+
 $DatabaseName = $AppSettings.Environments.$Environment.databaseName
 $ConnectionString = $AppSettings.Environments.$Environment.connectionString
 $TableName = $AppSettings.Environments.$Environment.tableName
@@ -72,9 +75,18 @@ if ($ColumnReader.HasRows) {
   while($ColumnReader.Read()) {
         # skip if identtity
         if( $ColumnReader.GetBoolean(1) ) { Write-Output ("Identity column -- skipping") ; continue } 
-        if( $null -ne $POContainerXref.($ColumnReader.getString(0)) ) {
+        
+        <##
+          IF the column is in the xref hash map, get the metadata and create a column in the 
+          memory table
+        #>
+        if( $POContainerXref.ContainsKey($ColumnReader.getString(0)) ) {
           $column = New-Object System.Data.DataColumn
           $column.ColumnName = $ColumnReader.GetString(0)
+
+          <##
+            Convert the native column types to .Net types
+          #>
           switch ($ColumnReader.GetByte(2)) {
             56 { $column.DataType =  [System.Type]::GetType("System.Int32"); break }
             58 { $column.DataType = [System.Type]::GetType("System.DateTime"); break }
@@ -88,16 +100,30 @@ if ($ColumnReader.HasRows) {
           $column.AllowDBNull = $ColumnReader.GetBoolean(6)
           $memDataTable.Columns.Add($column)
         } else {
-          Write-Output ("--")
+          Write-Output ("Skipping column {0}" -f $ColumnReader.getString(0))
         }
     }
-    $sc = New-Object -TypeName System.Xml.Schema.XmlSchemaSet
-    $memDataTable.GetDataTableSchema($sc)
-
   } else {
-  Write-Error("Failure to launch")
+  Write-Error("No rows found for table $tableName")
 }
+<##
+  Free up SQL resources
+#>
 $ColumnReader.Close()
-
-
 $SqlConnection.close()
+
+
+<##
+  Loop through the spreadsheet and populate the table we just built
+#>
+$ColumnsOI = $POContainerXref.Values  ## Columns of interest
+$inputData = Import-Csv -Path .\data\RWISR_20200505135338_PreProcessed.csv
+foreach($irow in $inputData) {  ## for each row of the csv file
+  $row = $memDataTable.NewRow()
+  foreach( $col in $ColumnsOI) {
+    $row[(Get-ColumnName -ColumnOrdinal $col -ColumnHash $POContainerXref)] = $irow.$col  ## the magik
+  }
+  $memDataTable.Rows.Add($row)   
+}
+##$rows = $memDataTable.Select()
+##Write-Output($rows.Length)
