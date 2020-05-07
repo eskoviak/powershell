@@ -125,5 +125,5 @@ foreach($irow in $inputData) {  ## for each row of the csv file
   }
   $memDataTable.Rows.Add($row)   
 }
-##$rows = $memDataTable.Select()
-##Write-Output($rows.Length)
+#$rows = $memDataTable.Select()
+#Write-Output($rows.Length)
