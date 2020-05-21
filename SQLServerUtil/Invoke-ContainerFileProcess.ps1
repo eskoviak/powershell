@@ -49,13 +49,23 @@ function Get-FileIntoObject {
 
     <##
         Process the raw data appling some filtering:
-        -- Remove empty Columns (not values in PRContainerXref)
-        -- Map data from arbitrary column headings to Target database column names (POContainerXref Keys)
-        -- Remove row where H (PurchaseOrderNum) or J (ItemNum) are emptry
     #>
     $processedList = @()
     foreach ($irow in $rawCSVObj) {
-        if (($irow.J.length -eq 0) -or ($irow.H.length -eq 0) ) { continue }
+        # Apply filters
+        if (($irow.H.length -eq 0) -or ($irow.J.length -eq 0) -or ($irow.N.length -eq 0) -or ($irow.O.length -eq 0) ) {
+           # Write-Output ("found missing data {0}" -f ($recordCount))
+            continue
+        }
+        if (($irow.H -match '.*[,].*') -or ($irow.J -match '.*[,].*') ) {
+            #Write-Output ("found illegal character: {0}" -f $irow)
+            continue
+        }
+        if ( -not ($irow.J -match  '^\d{5}[A-Z]')) {
+            #Write-Output ("found bad ItemNum: {0}" -f $irow.J)
+            continue
+        }
+
         $propHash = @{}
         foreach ($col in $POContainerXref.Keys) {
             $propHash[$col] = $irow.($POContainerXref.$col)
@@ -135,13 +145,44 @@ function Copy-TableObject {
     $ConnectionString = $Configuration.Environments.$Environment.connectionString
     $SqlConnection = New-Object System.Data.SqlClient.SqlConnection -ArgumentList $ConnectionString
     $SqlConnection.open()
+    $SqlCmd = new-Object System.Data.SqlClient.SqlCommand -Property @{
+        Connection=$SqlConnection;
+        CommandText='DELETE FROM wrkPurchaseOrderContainer WHERE 1=1'
+    }
+    $SqlCmd.ExecuteNonQuery() | Out-Null
     $sqlBulkCopy = New-Object System.Data.SqlClient.SqlBulkCopy -ArgumentList $SqlConnection
-    $sqlBulkCopy.DestinationTableName = "PurchaseOrderContainer_TEMP_KED"
+    $sqlBulkCopy.DestinationTableName = "wrkPurchaseOrderContainer"
     Write-Information ("Copying local table to server...") -InformationAction Continue
     $sqlBulkCopy.WriteToServer($memPurchaseOrderContainer)
-    Write-Information ("...done") -InformationAction Continue    
+    Write-Information ("...done") -InformationAction Continue
+    $SqlConnection.Close()    
 }
 
+function Invoke-CommandScript {
+    param (
+        [Parameter(Mandatory=$true)]
+        # The injected configuration
+        [psobject]
+        $Configuration
+    )
+
+    $SqlCommandText = Get-Content -Path C:\Source\Repos\powershell\SQLServerUtil\queries\DatabaseLoader.sql
+    $ConnectionString = $Configuration.Environments.$Environment.connectionString
+    $SqlConnection = New-Object System.Data.SqlClient.SqlConnection -ArgumentList $ConnectionString
+    $SqlConnection.open()
+    $SqlCmd = new-Object System.Data.SqlClient.SqlCommand -Property @{
+        Connection=$SqlConnection;
+        CommandType=[System.Data.CommandType]::StoredProcedure;
+        CommandText='[dbo].[POCStage]'
+    }
+    Write-Information("Starting proc POCStage") -InformationAction Continue
+    $recsArchived = $SqlCmd.ExecuteScalar()
+    Write-Information ("Rows archived: {0}" -f $recsArchived) -InformationAction Continue
+    Write-Information("Starting proc POCProcess") -InformationAction Continue
+    $SqlCmd.CommandText = '[dbo].[POCProcess]'
+    $SqlCmd.ExecuteNonQuery()
+    $SqlConnection.Close()
+}
 <##
    if (__name__ == '__main__')
 #>
@@ -150,51 +191,54 @@ function Copy-TableObject {
 $Configuration = Get-Content .\appsettings.json | ConvertFrom-Json
 
 $memPurchaseOrderContainer = New-Object -TypeName System.data.DataTable -ArgumentList "memPurchaseOrderContainer"
+Set-TableObject -Configuration $Configuration
+if( $null -eq $memPurchaseOrderContainer) {
+    Write-Error "Table object is null" -ErrorAction Exit -2
+}
+
 
 $Filelist = $null
 if ($IsDebug) {
-    $Filelist = Get-ChildItem -Path (Join-Path -Path (Split-Path -Path $PSCommandPath) -Childpath ($Configuration.Environments.$Environment.dataPath) ) -Filter *.csv
+    $Filelist = Get-ChildItem -Path (Join-Path -Path (Split-Path -Path $PSCommandPath) -Childpath ($Configuration.Environments.$Environment.dataPath) ) -Filter *.csv | Sort -Property LastWriteTime
 } else {
-    $FileList = Get-ChildItem -Path $Configuration.Environments.$Environment.sourceFolder -Filter *.csv
+    $FileList = Get-ChildItem -Path $Configuration.Environments.$Environment.sourceFolder -Filter *.csv | Sort -Property LastWriteTime
 }
 
 if ($null -eq $Filelist ) { Write-Error "No files found to process -- Exiting..." -ErrorAction Exit -1  }
 foreach($file in $Filelist) {
     if ($file -match $Configuration.Common.SourceFileRegex ) {
-        Write-Host ("Processing $File")
+        Write-Information ("Processing $File") -InformationAction Continue
 
         <## Build filterd hash table from input CSV File #>
         $ContainerList = Get-FileIntoObject -FileName $file
-        if ($ContainerList.length -eq 0) { Write-Host "No data inserted for $file" ; continue }
-
-        <## Build an in-memory replica of PurchaseOrderContainer ... #>
-        Set-TableObject -Configuration $Configuration
-        if( $null -eq $memPurchaseOrderContainer) {
-            Write-Output "Table object is null"
-            exit -2
+        if ($ContainerList.length -eq 0) { 
+            Write-Information ("No data inserted for $file -- skipping") -InformationAction Continue
+            Continue
         }
+        $memPurchaseOrderContainer.Clear()
 
         <## ... add the data from the hash table to the data table #>
+        $rowCount = 2
         foreach ($container in $ContainerList) {
-            $row = $memPurchaseOrderContainer.NewRow()
-            foreach ($column in (Get-Content .\POContainerXref.json | ConvertFrom-Json -AsHashtable).Keys) {
-                $row[$column] = $container.$column
+            try {
+                $row = $memPurchaseOrderContainer.NewRow()
+                foreach ($column in (Get-Content .\POContainerXref.json | ConvertFrom-Json -AsHashtable).Keys) {
+                    $row[$column] = $container.$column
+                }
+                $memPurchaseOrderContainer.Rows.Add($row)
+            } catch {
+                Write-Information ("An error occurred at input line $rowCount") -InformationAction Continue
+                Write-Information ($_.Exception.Message ) -InformationAction Continue
             }
-
-            <## The following Fieldds are not known at this time.  Set them equal to known defaults #>
-            $row["PurchaseOrderContainerID"] = -1
-            $row["OriginalAddDate"] = "01-01-1990"
-            $row["OriginalAddMachineName"] = $env:COMPUTERNAME
-            $row["OriginalAddUsername"] = $env:USERNAME
-
-            $memPurchaseOrderContainer.Rows.Add($row)
+            $rowCount += 1
         }
 
         $rows = $memPurchaseOrderContainer.Select()
         Write-Information ("Rows inserted: {0}" -f $rows.length) -InformationAction Continue
         Copy-TableObject -Configuration $Configuration
+        Invoke-CommandScript -Configuration $Configuration
     } else { 
-        Write-Host ("Skipping $file")
+        Write-Information ("Skipping $file") -InformationAction Continue
     }
 }
 Exit 0
