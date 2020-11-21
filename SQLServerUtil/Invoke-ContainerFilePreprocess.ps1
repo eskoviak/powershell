@@ -1,10 +1,19 @@
 <##
 .synopsis
-  Reads the input file from Business area, adds/updates the data 
+  Reads the input file from Business area, reformats and writes to a preprocessed file
 
 .description
-  The input file is a bit messy -- clean it up
+  The input file is a bit messy--the header row is nonesense.   A generic header is added, using
+  A, B, ..., similar to the Excel default column headings.
+
+.parameter Environment Speciiies the enviroment section in the appsettings.json file to get the
+                         environment specific settings
+
+.parameter IsDebu  A switch to indicate local files should be used  (./data)
+
 .example
+  PS> Invoke-ContainerFilePreprocess -Envronment development-rws
+
 #>
 
 param (
@@ -27,146 +36,78 @@ param (
 #>
 $AppSettings = Get-Content .\appsettings.json | ConvertFrom-Json
 $SourceFileRegex = $AppSettings.Common.SourceFileRegex
-Write-Output ($SourceFileRegex)
-exit
-
-##### GLOBALS #####
-<# The first row contains garbage headers that will cause the import to choke
-   For consistency; Assign Letters similar to Excel Default Column Names; these
-   will be used in the JSON mapping file
-#>
-##
-## TODO Convert to appconfig.json
-##
-$Headers =  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'
-$SourceFolder = "\\websense\ftproot\UPS\Containers"
-#$SourceFileRegex = '\d{4}.csv$'
-#$DebugFile = 'data\Red_Wing_Import_Status_Report_20200429094653.csv'
-#$DatabaseName = "PurchaseOrderContainer"
-#$TableName = "PurchaseOrderContainer"
-#$ConnectionString = "Server=SQL12DEV\SQL2;database=$DatabaseName;Integrated Security=true"
+$SourceFolder = $AppSettings.Environments.$Environment.sourceFolder
+$POContainerXref = Get-Content .\POContainerXref.json | ConvertFrom-Json -AsHashtable
+# This form gets the current working directory fully expanded (no drive names)
+#$PSCommandName = Split-Path -Path $PSCommandPath -Leaf
 
 <##
-  Read the raw file, Delete the header row and save to a 
-  temp file with the new header row
+  Build a property list to hold the processed data based on the XRef File
 #>
-#$ScriptPath = $MyInvocation.PSScriptRoot
+#$propHash = @{}
+#foreach($colName in $POContainerXref.Keys) {
+#    $propHash[$colName] = ''
+#}
+
+
+
+<##
+   Get the list of files to process
+#>
 $Filelist = $null
 if ($IsDebug) {
-    $Filelist = Get-ChildItem -Path (Join-Path -Path (Split-Path -Path $PSCommandPath) -Childpath data) -Filter *.csv
-    #Write-Output($FileList)
+    $Filelist = Get-ChildItem -Path (Join-Path -Path (Split-Path -Path $PSCommandPath) -Childpath ($AppSettings.Environments.$Environment.dataPath) ) -Filter *.csv
 } else {
-    $FileList = Get-ChildItem -Path $SourceFolder -Filter *.csv
-    #Write-Output (" : $FileList")
+    #$FileList = Get-ChildItem -Path $SourceFolder -Filter *.csv
+    $FileList = Get-ChildItem -Path .\data -Filter *.csv
 }
 
 if ($null -eq $Filelist ) {
     Write-Host ("No files to process -- Exiting...")
-    Exit
+    Exit -1
 }
 
 foreach($file in $Filelist) {
     if ($file -match $SourceFileRegex ) {
         Write-Host ("Processing $File")
+        $rawData = Get-Content -Path $file
+        if($IsDebug) {
+            # Just a sample to test with; eliminates the garbage header row
+            $Min = 20
+            $Max = 40
+        } else {
+            $Min = 1 # Discard Header Row
+            $Max = $rawData.Count - 1
+        }
+        $rawData[($Min)..($Max)] | Out-File -FilePath ./temp.csv -Force
+        $rawCSVObj = Import-Csv -Path ./temp.csv -Header 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'
+        #Remove-Item -Path ./temp.csv
+
+        <##
+          Process the raw data appling some filtering:
+          -- Remove empty Columns
+          -- Map data from arbitrary column headings to Target database column names
+          -- Remove nulls in H (PurchaseOrderNum) and J (ItemNum)
+        #>
+        $procCSVObjs = @()
+        foreach ($irow in $rawCSVObj) {
+            if (($irow.J.length -eq 0) -or ($irow.H.length -eq 0) ) { continue }
+            #Write-Output( $irow.J.length)
+            $propHash = @{}
+            foreach ($col in $POContainerXref.Keys) {
+                $propHash[$col] = $irow.($POContainerXref.$col)
+            }
+            $procCSVObjs += $propHash
+        }
+        #Write-Output($procCSVObjs[0])
+        #exit
+
+
+        #$outfile =(Join-Path -Path (Split-Path $file) -Childpath ('RWISR_'+(Get-Date -Format "yyyyMMddHHmmss")+'_PreProcessed.csv'))
+        #Write-Host ("Writing File: $outfile")
+        #$procCSVObjs | Export-Csv -Path $outfile
     } else {
         Write-Host ("Skipping $file")
     }
 }
-Exit
-
-foreach ($file in (GET-Item -Path $SourceFolder -Include *.csv)){
-    if ($file -match $SourceFileRegex) {
-        Write-Output ("")
-    }
-}
-$rawData = Get-Content -Path $FileName
-if($IsDebug) {
-    # Just a sample to test with; eliminates the garbage header row
-    $Min = 20
-    $Max = 20
-} else {
-    $Min = 1 # Discard Header Row
-    $Max = $rawData.Count - 1
-}
-$rawData[($Min)..($Max)] | Out-File -FilePath ./temp.csv -Force
-$csvObj = Import-Csv -Header $Headers -Path ./temp.csv 
-
-##
-## TODO Convert to UnitTest
-## 
-#Write-output ($csvObj)
-#foreach($Row in $csvObj) {
-#    Write-Output($Row."L")
-#}
-#exit
-
-## Read JSON cross ref file into a HashTable
-$ColHash = (Get-Content -Path ./POContainerXref.json | ConvertFrom-JSON -AsHashtable)
-
-##
-## TODO Convert to UnitTest
-## 
-#Write-output ($ColHash.L)
-
-<##
-  Get the table geometry from the data target
-#>
-## Open Data Source
-$SqlConnection = New-Object System.Data.SqlClient.SqlConnection -ArgumentList $ConnectionString
-$SqlConnection.open()
-
-## Read Schema from Data Source
-$SqlCmd = New-Object System.Data.SqlClient.SqlCommand -Property @{
-    Connection = $SqlConnection;
-    CommandText = @"
-        SELECT c.name, c.is_identity, st.name,  c.max_length, c.precision, c.scale, c.is_nullable
-        FROM [$DatabaseName].[sys].[tables] t, [$DatabaseName].[sys].[columns] c, [$DatabaseName].[sys].[systypes] st
-        WHERE t.name = '$TableName'
-          AND c.object_id = t.object_id
-          AND st.xusertype = c.system_type_id
-"@
-}
-$ColumnReader = $SqlCmd.ExecuteReader()
-while ($ColumnReader.Read()) {
-    $TableMap[$ColumnReader[0]]=@{IsIdentity=$ColumnReader[1];
-        Type=$ColumnReader[2];
-        Length=$ColumnReader[3];
-        Precision=$ColumnReader[4];
-        Scale=$ColumnReader[5];
-        IsNullable=$ColumnReader[6]
-      }
-}
-
-exit
-
-## Create-In Memory Table to hold the extracted data from the Modified csv
-
-#$InsertList = New-Object System.Data.DataTable("mem_insertList")
-
-## New Apprach
-
-
-
-
-## Clean up
-Remove-Item ./temp.csv
-$SqlConnection.close()
-<## Frags
-
-        $SqlConnection = New-Object System.Data.SqlClient.SqlConnection -ArgumentList "Data Source=SQL12B\SQL2; Integrated Security=True; Initial Catalog=SalesForce"
-        $SqlConnection.open()
-        $SqlCmd = New-Object System.Data.SqlClient.SqlCommand -Property @{
-            Connection = $SqlConnection
-        }
- $SqlString = @"
- "@
-
-     $typesList = New-Object System.Data.DataTable("mem_ownershipList")
-    $typesList.Columns.Add( (New-Object System.Data.DataColumn("type")) )
-    foreach ($type in ('Corporate', 'Dealer')) {
-      $tmpRow = $typesList.NewRow()
-      $tmpRow['type'] = $type
-      $typesList.Rows.Add($tmpRow)
-    }
-
-#>
+Exit 0
