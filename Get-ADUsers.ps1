@@ -12,6 +12,23 @@ public class User {
     public string Description { get; set; }
     public string UserPrincipalName { get; set; }
     public string SamAccountName { get; set; }
+
+    public string[] OUs { 
+        get {
+            string[] OUs;
+            foreach( string str in this.DistinguishedName.Split(",")) {
+                string[] kv = str.Split("=");
+                if(kv[0] == "OU") {
+                    OUs[OUs.Length + 1] = kv[1];
+                }
+            }
+            return OUs;
+        }
+    }
+
+    public bool inOU(string ou) {
+        return this.OUs.Contains(ou);
+    }
 }
 "@
 Add-Type -TypeDefinition $UserSource
