@@ -1,3 +1,4 @@
+<##
 $string = "CN=Ed Skoviak,OU=Corporate,OU=RWSCUsers,DC=rwsc,DC=net"
 
 $OUs = @()
@@ -11,6 +12,20 @@ foreach($frag in $frags){
 foreach($OU in $OUs) {
   Write-Output($OU)
 } 
+#>
+
+$searchPhrase = 'drebell'
+
+$absoluteFile = '.\absoluteList.xlsx'
+
+if (Test-Path( $absoluteFile )) {
+
+
+
+
+
+
+}
 
   
 
