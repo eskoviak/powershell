@@ -1,5 +1,6 @@
 Import-Module ImportExcel
 
+<## USER TYPES #>
 $UserRecordSource = @"
 public class UserRecord {
     public string DistinguishedName { get; set; }
@@ -42,8 +43,10 @@ public class ComputerRecord {
 }
 "@
 Add-Type -TypeDefinition $ComputerRecordSource
+<## END USER TYPES #>
 
 $SubOUExcludes = @('Retail')
+$AbsoluteFileName = '.\absoluteList.xlsx'
 
 function ExcludeOU {
     param(
@@ -76,10 +79,25 @@ function GetComputer {
     return $ComputerRecords
 }
 
+Function Get-AbsoluteData {
+    param(
+        # Input SamAccountName
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+        [String] $SamAccountName
+    )
+
+    $AbsoluteData | ForEach-Object {
+        if($_.'Device name' -like $SamAccountName+"*") {
+            return $_.FileDectectResultDiagnostics
+        }
+    }
+    return '---'
+}
+
 $Records = @()
 $Users = Get-ADUser -Filter {Enabled -eq $true}  -Properties Description,Office -SearchBase "OU=RWSCUsers,DC=rwsc,DC=net"
 $Computers = Get-AdComputer -Filter {Enabled -eq $true} -Properties Whenchanged -SearchBase "OU=New,OU=Workstations,DC=rwsc,DC=net"
- 
+$AbsoluteData = Import-Excel -Path $AbsoluteFileName -WorksheetName 'Sheet1' 
 
 Write-Output ('Processing OU=RWSCUsers,DC=rwsc,DC=net' )
 $Users | ForEach-Object {
@@ -94,6 +112,7 @@ $Users | ForEach-Object {
     (GetComputer $_.SamAccountName) | ForEach-Object {
         $Record.ComputerSamAccount += $_.Name + ' (' + $_.WhenChanged + ') '
     }
+    $Record.AbsoluteStatus = Get-AbsoluteData $_.SamAccountName
     $Records += $Record
 }
 
@@ -114,6 +133,7 @@ $Users | ForEach-Object {
     (GetComputer $_.SamAccountName) | ForEach-Object {
         $Record.ComputerSamAccount += $_.Name + ' (' + $_.WhenChanged + ') '
     }
+    $Record.AbsoluteStatus = Get-AbsoluteData $_.SamAccountName
     $Records += $Record
     $count += 1
 }
