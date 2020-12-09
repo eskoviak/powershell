@@ -42,9 +42,13 @@ if (Test-Path( $absoluteFile )) {
   #$absoluteData | Sort-Object -Property Model -Unique | Select-Object -Property Model
   $tmp = ($absoluteData[1].FileDectectResultDiagnostics)
   $Status = $tmp.Substring(0, $tmp.IndexOf(':')-6)
-  $StatusDt = $tmp.Substring($tmp.IndexOf(':')+1, 8)
+  $tmp.Substring($tmp.IndexOf(':')+1, 14) -match '(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})(?<hour>\d{2})(?<min>\d{2})(?<sec>\d{2})' | Out-Null
+  #$Matches
+  $StatusDt = New-Object -TypeName "DateTime" -ArgumentList ($Matches['year'], $Matches['month'], $Matches['day'], $Matches['hour'], $Matches['min'], $Matches['sec'])
+  #$StatusDt1 = [System.DateTime].Parse($tmp.Substring($tmp.IndexOf(':')+1, 14), "yyyyMMddHHmmss")
   $Status
   $StatusDt
+
 }
   
 

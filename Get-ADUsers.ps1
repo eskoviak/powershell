@@ -31,6 +31,8 @@ public class UserRecord {
     public string UserSamAccount{ get; set; }
     public string ComputerSamAccount { get; set; }
     public string AbsoluteStatus { get; set; }
+    public string AbsoluteStatusDt { get; set; }
+    public string DeviceType { get; set; }
 }
 "@
 Add-Type -TypeDefinition $UserRecordSource
@@ -86,12 +88,13 @@ Function Get-AbsoluteData {
         [String] $SamAccountName
     )
 
+    $AbsoluteRecord = $null
     $AbsoluteData | ForEach-Object {
         if($_.'Device name' -like $SamAccountName+"*") {
-            return $_.FileDectectResultDiagnostics
+            $AbsoluteRecord = $_ 
         }
     }
-    return '---'
+    return $AbsoluteRecord
 }
 
 $Records = @()
@@ -112,6 +115,7 @@ $Users | ForEach-Object {
     (GetComputer $_.SamAccountName) | ForEach-Object {
         $Record.ComputerSamAccount += $_.Name + ' (' + $_.WhenChanged + ') '
     }
+    $AbsoluteRecord = Get-AbsoluteData $_.SamAccountName
     $Record.AbsoluteStatus = Get-AbsoluteData $_.SamAccountName
     $Records += $Record
 }
