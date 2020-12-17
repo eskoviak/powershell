@@ -30,6 +30,7 @@ public class UserRecord {
     public string Office { get; set; }
     public string UserSamAccount{ get; set; }
     public string ComputerSamAccount { get; set; }
+	public string ComputerSamAccountCreateDt { get; set; }
     public string AbsoluteStatus { get; set; }
     public string AbsoluteStatusDt { get; set; }
     public string DeviceType { get; set; }
@@ -40,8 +41,9 @@ Add-Type -TypeDefinition $UserRecordSource
 
 $ComputerRecordSource = @"
 public class ComputerRecord {
+	public string DistinguishedName { get; set; }
     public string Name { get; set; }
-    public string WhenChanged { get; set; }
+    public string WhenCreated { get; set; }
 }
 "@
 Add-Type -TypeDefinition $ComputerRecordSource
@@ -73,7 +75,7 @@ function GetComputer {
         if ($_.Name -like $SamAccountName+"*") {
             $ComputerRecord = New-Object -TypeName ComputerRecord
             $ComputerRecord.Name = $_.Name
-            $ComputerRecord.WhenChanged = $_.Whenchanged
+            $ComputerRecord.WhenCreated = $_.WhenCreated
             $ComputerRecords += $ComputerRecord
          } 
     }
@@ -97,50 +99,41 @@ Function Get-AbsoluteData {
     return $AbsoluteRecord
 }
 
+Function Add-Users {
+	$Users | ForEach-Object {
+		$Record = New-Object -TypeName UserRecord
+		$Record.DistinguishedName = $_.DistinguishedName
+		$Record.GivenName = $_.GivenName
+		$Record.Surname = $_.Surname
+		$Record.Description = $_.Description
+		$Record.Office = $_.Office
+		$Record.UserSamAccount = $_.SamAccountName
+		#$Record.ComputerSamAccount = GetComputer $_.SamAccountName
+		(GetComputer $_.SamAccountName) | ForEach-Object {
+			$Record.ComputerSamAccount += $_.Name
+			$Record.ComputerSamAccountCreateDt += $_.WhenCreated
+		}
+		#$AbsoluteRecord = Get-AbsoluteData $_.SamAccountName
+		#$Record.AbsoluteStatus = Get-AbsoluteData $_.SamAccountName
+		$Records += $Record
+	}
+
+	$Count += 1
+}
 $Records = @()
-$Users = Get-ADUser -Filter {Enabled -eq $true}  -Properties Description,Office -SearchBase "OU=RWSCUsers,DC=rwsc,DC=net"
-$Computers = Get-AdComputer -Filter {Enabled -eq $true} -Properties Whenchanged -SearchBase "OU=New,OU=Workstations,DC=rwsc,DC=net"
+$Computers = Get-AdComputer -Filter * -Properties WhenCreated -SearchBase "OU=New,OU=Workstations,DC=rwsc,DC=net"
 $AbsoluteData = Import-Excel -Path $AbsoluteFileName -WorksheetName 'Sheet1' 
 
 Write-Output ('Processing OU=RWSCUsers,DC=rwsc,DC=net' )
-$Users | ForEach-Object {
-    $Record = New-Object -TypeName UserRecord
-    $Record.DistinguishedName = $_.DistinguishedName
-    $Record.GivenName = $_.GivenName
-    $Record.Surname = $_.Surname
-    $Record.Description = $_.Description
-    $Record.Office = $_.Office
-    $Record.UserSamAccount = $_.SamAccountName
-    #$Record.ComputerSamAccount = GetComputer $_.SamAccountName
-    (GetComputer $_.SamAccountName) | ForEach-Object {
-        $Record.ComputerSamAccount += $_.Name + ' (' + $_.WhenChanged + ') '
-    }
-    $AbsoluteRecord = Get-AbsoluteData $_.SamAccountName
-    $Record.AbsoluteStatus = Get-AbsoluteData $_.SamAccountName
-    $Records += $Record
-}
-
-Write-Output ('Read {0} Records from OU RWSCUsers' -f $Records.Length)
+$Users = Get-ADUser -Filter * -Properties Description,Office -SearchBase "OU=RWSCUsers,DC=rwsc,DC=net"
+$Count = 0
+Add-Users
+Write-Output ('Read {0} Records from OU RWSCUsers' -f $Count)
 
 Write-Output('Processing OU=Sales,DC=rwsc,DC=net')
-$Users = Get-ADUser -Filter {Enabled -eq $true}  -Properties Description -SearchBase "OU=Sales,DC=rwsc,DC=net"
+$Users = Get-ADUser -Filter *  -Properties Description -SearchBase "OU=Sales,DC=rwsc,DC=net"
 $count = 0
-
-$Users | ForEach-Object {
-    $Record = New-Object -TypeName UserRecord
-    $Record.DistinguishedName = $_.DistinguishedName
-    $Record.GivenName = $_.GivenName
-    $Record.Surname = $_.Surname
-    $Record.Description = $_.Description
-    $Record.Office = $_.Office
-    $Record.UserSamAccount = $_.SamAccountName
-    (GetComputer $_.SamAccountName) | ForEach-Object {
-        $Record.ComputerSamAccount += $_.Name + ' (' + $_.WhenChanged + ') '
-    }
-    $Record.AbsoluteStatus = Get-AbsoluteData $_.SamAccountName
-    $Records += $Record
-    $count += 1
-}
+Add-Users
 Write-Output ('Read {0} Records from OU Sales' -f $count)
 
 #$Records | Export-Excel
