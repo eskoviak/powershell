@@ -12,4 +12,4 @@ param(
     $SearchPhrase
 )
 
-Get-ADComputer -Filter {Name -like $SearchPhrase} -Properties Whencreated 
+Get-ADComputer -Filter {Name -like $SearchPhrase} -Properties Whencreated, Whenmodified 

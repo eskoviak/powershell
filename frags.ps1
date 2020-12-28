@@ -10,3 +10,18 @@ Add-Member -InputObject $output -MemberType NoteProperty -Name UserSamAccountNam
 Add-Member -InputObject $output -MemberType NoteProperty -Name ComputerSamAccountName -Value ""
 Add-Member -InputObject $output -MemberType NoteProperty -Name AbsoluteStatus -Value ""
 #>
+
+
+
+$found = $false
+
+$ADComputers | ForEach-Object {
+        if ( $_.Name -like $row.'Device Name' ) {
+            if ($found) {
+                " *" | Write-Host -NoNewLine
+            }
+            Write-Host "$($_.Name)`t$($_.Whencreated)" -NoNewLine
+            $found = $true
+        }
+}
+Write-Host ""
