@@ -100,6 +100,11 @@ Function Get-AbsoluteData {
 }
 
 Function Add-Users {
+	
+	param(
+	  Parameter[(Mandatory=$true)]
+	  
+	)
 	$Users | ForEach-Object {
 		$Record = New-Object -TypeName UserRecord
 		$Record.DistinguishedName = $_.DistinguishedName
